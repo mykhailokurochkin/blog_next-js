@@ -91,12 +91,12 @@ export default function AdminDashboard() {
                   >
                     View Post
                   </Link>
-                  <button
-                    onClick={() => {/* TODO: Implement edit functionality */}}
+                  <Link
+                    href={`/edit-post/${post.id}`}
                     className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-1"
                   >
                     Edit
-                  </button>
+                  </Link>
                   <button
                     onClick={() => handleDeletePost(post.id)}
                     disabled={deletePostMutation.isPending}

@@ -66,7 +66,7 @@ export const create = async (postData: CreatePostData, accessToken: string, user
 
 export const update = async (id: number, postData: UpdatePostData, accessToken: string): Promise<Post> => {
   try {
-    const response = await postsClient.put(`/posts/${id}`, postData, {
+    const response = await postsClient.put(`/posts/${id}`, { updates: postData }, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
@@ -75,7 +75,7 @@ export const update = async (id: number, postData: UpdatePostData, accessToken: 
   } catch (error: any) {
     throw new Error(error.response?.data?.error || 'Failed to update post');
   }
-}
+};
 
 export const remove = async (id: number, accessToken: string): Promise<void> => {
   try {
