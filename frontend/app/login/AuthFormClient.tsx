@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
+import { useAuth } from '../context/AuthContext';
+import { login as authLogin } from '../api/authClient';
 
 interface AuthFormClientProps {
   onSuccess?: (userId: number) => void;
@@ -10,33 +14,38 @@ export default function AuthFormClient({ onSuccess }: AuthFormClientProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
+
+  const authMutation = useMutation({
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      return authLogin(email, password);
+    },
+    onSuccess: (data) => {
+      const accessToken = data.accessToken;
+      const userFromApi = data.user;
+
+      if (accessToken && userFromApi) {
+        login(userFromApi, accessToken);
+        onSuccess?.(userFromApi.id);
+        router.push('/dashboard');
+      } else {
+        setError('Invalid response from server.');
+      }
+    },
+    onError: (err: unknown) => {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Authentication failed.');
+      }
+    },
+  });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('http://localhost:4000/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        onSuccess?.(data.userId);
-        window.location.href = '/dashboard';
-      } else {
-        setError(data.error || 'Authentication failed.');
-      }
-    } catch (err: any) {
-      setError('Network error. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    authMutation.mutate({ email, password });
   };
 
   return (
@@ -59,7 +68,7 @@ export default function AuthFormClient({ onSuccess }: AuthFormClientProps) {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
-            disabled={isLoading}
+            disabled={authMutation.isPending}
           />
         </div>
 
@@ -77,7 +86,7 @@ export default function AuthFormClient({ onSuccess }: AuthFormClientProps) {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
-            disabled={isLoading}
+            disabled={authMutation.isPending}
           />
         </div>
 
@@ -90,9 +99,9 @@ export default function AuthFormClient({ onSuccess }: AuthFormClientProps) {
         <button
           type="submit"
           className="w-full py-2 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isLoading}
+          disabled={authMutation.isPending}
         >
-          {isLoading ? 'Loading...' : 'Submit'}
+          {authMutation.isPending ? 'Loading...' : 'Submit'}
         </button>
       </form>
     </div>
