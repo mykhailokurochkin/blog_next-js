@@ -1,23 +1,33 @@
 import { Router, Request, Response } from "express";
-import { add, getAll, update, remove } from "./posts.service.js";
+import { getAllPosts, add, update, remove, getById } from "./posts.service.js";
 import { Post } from "../db/sequelize.js";
 import { adminOnly, authMiddleware } from '../middleware.js';
 
 const postsRouter = Router();
 
-postsRouter.get('/', async (req: Request, res: Response) => {
-  const userId = req.query.userId as string;
-
-  if (!userId) {
-    return res.status(400).json({ error: "Missing userId in query parameters" });
-  }
-
+postsRouter.get('/', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const posts = await getAll(Number(userId));
+    const posts = await getAllPosts();
     return res.status(200).json({ posts: posts as Post[] });
   } catch (error) {
     console.error('Failed to fetch posts:', error);
     return res.status(500).json({ error: "Failed to fetch posts", details: (error as Error).message });
+  }
+});
+
+postsRouter.get('/:id', authMiddleware, async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: "Invalid or missing id in request" });
+  }
+
+  try {
+    const post = await getById(Number(id));
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.error('Failed to fetch post:', error);
+    return res.status(500).json({ error: "Failed to fetch post", details: (error as Error).message });
   }
 });
 

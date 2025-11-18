@@ -22,20 +22,27 @@ export interface UpdatePostData {
   description?: string;
 }
 
-
-export const getAll = async (): Promise<Post[]> => {
+export const getAll = async (accessToken: string): Promise<Post[]> => {
   try {
-    const response = await postsClient.get('/posts');
-    return response.data;
+    const response = await postsClient.get('/posts', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+    return response.data.posts || response.data;
   } catch (error: any) {
     throw new Error(error.response?.data?.error || 'Failed to fetch posts');
   }
 }
 
-export const getById = async (id: number): Promise<Post> => {
+export const getById = async (id: number, accessToken: string): Promise<Post> => {
   try {
-    const response = await postsClient.get(`/posts/${id}`);
-    return response.data;
+    const response = await postsClient.get(`/posts/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+    return response.data.post;
   } catch (error: any) {
     throw new Error(error.response?.data?.error || 'Failed to fetch post');
   }
