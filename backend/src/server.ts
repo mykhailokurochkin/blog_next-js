@@ -10,13 +10,9 @@ import { initializeDatabase } from './db/sequelize.js';
 
 const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN?.split(',').map((origin) => origin.trim()) ?? [
-  'http://localhost:5173',
-];
-
 app.use(
   cors({
-    origin: corsOrigin,
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   }),
 );

@@ -26,6 +26,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
   declare id: CreationOptional<number>;
   declare email: string;
   declare password: string;
+  declare role: CreationOptional<string>;
 }
 
 User.init(
@@ -47,6 +48,11 @@ User.init(
       type: DataTypes.STRING(200),
       allowNull: false,
     },
+    role: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: 'USER',
+    },
   },
   {
     sequelize,
@@ -59,6 +65,9 @@ export class Post extends Model<InferAttributes<Post>, InferCreationAttributes<P
   declare id: CreationOptional<number>;
   declare title: string;
   declare description: CreationOptional<string>;
+  declare content: string;
+  declare author: string;
+  declare createdAt: CreationOptional<Date>;
   declare userId: ForeignKey<User['id']>;
 }
 
@@ -77,6 +86,19 @@ Post.init(
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: '',
+    },
+    content: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    author: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
     userId: {
       type: DataTypes.INTEGER,
@@ -113,6 +135,7 @@ export const initializeDatabase = async () => {
 export type PublicUser = {
   id: number;
   email: string;
+  role: string;
 };
 
 export { sequelize };

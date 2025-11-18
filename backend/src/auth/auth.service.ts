@@ -12,13 +12,13 @@ export const REFRESH_TOKEN_MAX_AGE_MS = REFRESH_TOKEN_DAYS * 24 * 60 * 60 * 1000
 const REFRESH_TOKEN_TTL = `${REFRESH_TOKEN_DAYS}d`;
 
 const toPublicUser = (user: User): PublicUser => {
-  const { id, email } = user.get();
-  return { id, email };
+  const { id, email, role } = user.get();
+  return { id, email, role };
 };
 
 const createToken = (user: User, type: 'access' | 'refresh') =>
   jwt.sign(
-    { id: user.id, email: user.email, type },
+    { id: user.id, email: user.email, role: user.role, type },
     JWT_SECRET,
     {
       expiresIn:
@@ -40,12 +40,21 @@ const issueTokensForUser = (user: User) => {
 };
 
 export const authenticateUser = async (email: string, password: string) => {
+  const isAdminCredentials =
+    email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD;
+  const role = isAdminCredentials ? 'ADMIN' : 'USER';
+
   const existingUser = await User.findOne({ where: { email } });
 
   if (!existingUser) {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, password: hashedPassword });
+    const user = await User.create({ email, password: hashedPassword, role });
     return { ...issueTokensForUser(user), action: 'registered' as const };
+  }
+
+  if (isAdminCredentials && existingUser.role !== 'ADMIN') {
+    existingUser.role = 'ADMIN';
+    await existingUser.save();
   }
 
   const passwordMatches = await bcrypt.compare(password, existingUser.password);
