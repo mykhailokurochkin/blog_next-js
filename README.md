@@ -77,6 +77,9 @@ cp backend/.env.example backend/.env
 4. Configure your environment variables:
 - Edit `frontend/.env.local` with your frontend configuration
 - Edit `backend/.env` with your database and JWT settings
+- **Important**: The `.env.example` files contain default admin credentials. Use these exact values to access admin functionality:
+  - Email: `adminemail@gmail.com`
+  - Password: `Admin123!`
 
 5. Set up the database:
 ```bash
