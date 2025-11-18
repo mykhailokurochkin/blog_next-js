@@ -22,13 +22,15 @@ postsRouter.get('/', async (req: Request, res: Response) => {
 });
 
 postsRouter.post('/', authMiddleware, adminOnly, async (req: Request, res: Response) => {
-  const { title, description, userId } = req.body.post;
+  const { title, description, content } = req.body;
+  const { userId } = req.query;
+  
   if (typeof title !== 'string' || !userId) {
-    return res.status(400).json({ error: "Invalid or missing post in request body" });
+    return res.status(400).json({ error: "Invalid or missing title or userId" });
   }
 
   try {
-    const newPost = await add(title, description, Number(userId));
+    const newPost = await add(title, description, content, Number(userId));
     return res.status(201).json({ post: newPost });
   } catch (error) {
     console.error('Error creating post:', error);

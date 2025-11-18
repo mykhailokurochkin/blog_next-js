@@ -4,8 +4,11 @@ export function getAll(userId: number) {
   return Post.findAll({ where: { userId } });
 }
 
-export function add(title: string, description?: string, userId?: number) {
-  return Post.create({ title, description, userId });
+export function add(title: string, description?: string, content?: string, userId?: number) {
+  const postData: any = { title, userId };
+  if (description) postData.description = description;
+  if (content) postData.content = content;
+  return Post.create(postData);
 }
 
 export function update(postId: number, updates: { title?: string; completed?: boolean }) {
